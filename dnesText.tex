@@ -1,0 +1,254 @@
+\documentclass[letterpaper, preprint]{aastex}
+\usepackage{amsmath, amsfonts, bbm, bm, calc}
+\usepackage{graphicx}
+\usepackage[normalem]{ulem}
+
+%\usepackage[pdftex]{graphicx}
+%\usepackage{epstopdf}
+\newcounter{address}
+\usepackage{color}
+\newcommand{\latin}[1]{\emph{#1}}
+\newcommand{\etal}{\latin{et\,al.}}
+\newcommand{\ie}{\latin{i.\,e.}}
+\newcommand{\eg}{\latin{e.\,g.}}
+\newcommand{\unit}[1]{\mathrm{#1}}
+
+\newcommand{\bth} {\boldsymbol \theta}
+
+
+\definecolor{red}{rgb}{1,0,0}
+\definecolor{blue}{rgb}{0,0,1}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+
+\usepackage{showkeys}
+ \usepackage{algpseudocode}
+
+
+
+%  Display a comment in red, for discussion in drafts
+%  To make the comments go away, uncomment the second version of the command
+
+\newcommand{\qer}[1]{{\color{red}#1}}
+%\renewcommand{\qer}[1]{}     %  Uncomment this to make the red comments go away.
+
+\usepackage{hyperref}
+
+
+\begin{document}
+\title{
+  Diffusive Nested Ensemble Sampling
+}
+
+\begin{abstract}
+This paper contains an exposition and some refinements of nested sampling as an approach to
+computing Bayesian evidence for Bayesian model selection.
+We show that an affine invariant ensemble sampler is effective in some cases.
+We use the modified algorithm to study multi-planet fits to radial velocity data for star *****.
+Computations show that there is an order of magnitude more Bayesian evidence for a 5 planet model
+than for models with fewer or more planets.
+
+
+\end{abstract}
+
+
+\section{A}
+
+More precisely, suppose model $j$ has parameters $\bth_j = (\theta_1,\ldots,\theta_{n_j})$.
+Let $\pi_j(\bth_j$ be the prior, and let $L_j({\cal D}\mid \bth_j)$ be the probability of data 
+$\cal D$ in model $j$ with parameters $\bth_j$.
+If model $j$ is correct, then the probability of data $\cal D$ is
+\begin{equation}
+Z_j({\cal D}) = \int L({\cal D}\mid \bth_j) \pi_j(\bth_j) \,d\bth_j \; .
+\label{Zj}  \end{equation}
+A Bayesian approach to model selection is to use prior probabilities $P_j$ for model $j$.
+The posterior probability of model $j$ is
+$$
+P(j\mid {\cal D}) = \frac{Z_j({\cal D})P_j}{\displaystyle \sum_k Z_k P_k} \; .
+$$
+This gives $P(j\mid{\cal D})$ (after a normalization) as the product of the prior and the 
+Bayesian evidence $Z_j$.
+Our goal is to estimate $Z_j$ using MCMC and nested sampling.
+
+We have in mind the application to estimating the number of planets about a star.
+Let $j$ represent a model with $j$ planets.
+The parameters for model $j$ consist of two common parameters (velocity offset and jitter) and five 
+orbital parameters per planet.
+This gives
+$$
+n_j = 2 + 5j
+$$
+in this case.
+
+\section{B}
+
+For several sections we refer to the evidence integral without the model selection context.\
+The evidence integral is simply
+\begin{equation}
+Z =  \int L(\bth) \pi(\bth) \,d\bth \; ,
+\label{Z}  \end{equation}
+where $\pi(\bth)$ is some probability density function and $L(\bth) = L(\cal D \mid \bth)$ is some likelihood
+function.
+Nested sampling is an alternative to direct Monte Carlo integration of the evidence integral (\ref{Z}).
+Direct estimation would use $N$ samples, $\bth_k \sim \pi(\bth)$,
+and make the estimate
+$$
+Z \approx \frac{1}{N} \sum_{k=1}^N L( \bth_k) \; .
+$$
+This approach is ``correct'' in the sense that the right side converges to $Z$ in the 
+hypothetical limit $N \to \infty$.
+But is is impractical in situations where the data severely constrain $\bth$.
+In that case, it is exceeding unlikely that $\bth$ drawn ``at random'' from $\pi$ is a good fit 
+to the data.
+Mathematically, this means that all but a very small the part of $\bth$ space contributes 
+contributes little to the integral (\ref{Z}).
+
+Importance sampling \cite{IS} is a Monte Carlo variance reduction strategy for situations like this.
+Nested sampling constructs an importance function using level surfaces of the likelihood function.
+If $L^*$ is some likelihood ``level'', the corresponding probability mass is
+\begin{equation}
+M(L^*) = \int_{L(\bth)>L^*} \pi(\bth)\,d\bth = \mbox{Prob}_{\pi}(L > L^*) \; .
+\label{M} \end{equation}
+
+blabla
+
+Nested sampling is a two stage algorithm.
+The first stage constructs an importance function by estimating the levels $L_j$ with
+\begin{equation}
+M(L_j) = M_j = e^{-j} \; .
+\label{Lj} \end{equation}
+Once the $L_j$ are known (approximately), the {\em constrained priors}
+\begin{equation}
+p_j(\bth) = \frac{\pi(\bth)}{M_j} \mathbbm{1}_{L(\bth)>L_j} \; ,
+\label{pj}  \end{equation}
+$\mathbbm{1}_{***}$ is the indicator function
+$$
+\mathbbm{1}_{L(\bth)>L_j} = \left\{ \begin{array}{ll} 1 & \mbox{ if } L(\bth) > L_j \\ 
+                                                      0 & \mbox{ otherwise} \; .
+                                     \end{array} \right.
+$$
+These are the probability densities of $\bth$ conditioned on $L(\bth) > L_j$.
+
+The second phase of nested sampling estimates the integral (\ref{Z}) using a weighted sum
+of constrained priors
+\begin{equation}
+p(\bth) = \sum_j w_j p_j(\bth) \; .
+\label{p} \end{equation}
+The corresponding probability ratio is
+\begin{equation}
+R(\bth) = \frac{\pi(\bth)}{p(\bth)} = \frac{1}{\displaystyle \sum_{L_j < L(\bth)}w_j } \; .
+\label{R} \end{equation}
+Simple algebra shows that evidence integral (\ref{Z}) is
+\begin{equation}
+Z = \int L(\bth)R(\bth) \,p(\bth) \,d \bth \; .
+\label{ZR}  \end{equation}
+An idealized nested sampling algorithm would draw $N$ samples $\bth_k \sim p(\bth)$, and form the 
+approximation
+\begin{equation}
+Z \approx \frac{1}{N} \sum_{k=1}^n L(\bth_k) R(\bth_k) \; .
+\label{Zns} \end{equation}
+
+We present computations using these ideas that construct on the order of 100 levels.
+This ``localizes'' the evidence integral (\ref{Z}) to a region of parameter space whose prior
+probability is something like $e^{-100}$.
+
+The following sections contain details of various aspects of the algorithm we use.
+Section *** explains how we estimate the levels $L_j$.
+Section *** explains sampling from the constrained prior using the emcee algorithm.
+Section *** gives the weights we use in practice and how we sample the weighted distribution 
+$p(\bth)$.
+
+
+
+
+
+
+
+\section{about 2.3}
+
+This section describes a sampler for the weighted distribution (\ref{p}).
+We do not require that $M_j = e^{-j}$ but we do require that $M_j = M(L_j)$, so that $p_j(\bth)$,
+see (\ref{pj}), is properly normalized as a probability density.
+Suppose the levels run from $j=0$ to $j=J$.
+Consider the pair $(j,\bth)$ to be random, with probability distribution 
+\begin{equation}
+p(j,\bth) = w_jp_j(\bth) \; .
+\label{pjth}  \end{equation}
+It is clear that if the pair $(j,\bth)$ has this distribution, then $\bth$ has the distribution $p$.
+We sample $p(\bth)$ by sampling $p(j,\bth)$ and saving only the $\bth$ values to use in (\ref{Zns}).
+
+We use a heat bath type MCMC strategy (also called the Gibbs sampler) to sample $p(j,\bth)$.
+This alternates between resampling $\bth$ for fixed $j$, and resampling $j$ for fixed $\bth$.
+This requires expressions for the conditional distribution of $\bth$ given $j$ and vice versa.
+One of these is clearly
+\begin{equation}
+p(\bth \mid j) = p_j(\bth) \; .
+\label{bthcj} \end{equation}
+For the other one we rewrite $p(j,\bth)$ as
+$$
+p(j,\bth) = \left(\;w_j \frac{1}{M(L_j)} \mathbbm{1}_{L(\bth)>L_j} \;\right)\pi(\bth) \; .
+$$
+Only the part in parentheses depends on $j$.
+For fixed $\bth$, the allowed $j$ values are those with $L_j < L(\bth)$.
+The largest allowed $j$ for given $\bth$ is 
+$$
+j_{\mbox{\scriptsize \em max}}(\bth) = \max\left\{ \,j \mbox{ with } L_j < L(\bth) \right\} \; .
+$$
+Therefore, for a fixed $\bth$, the $j$ distribution is
+\begin{equation}
+p(j\mid \bth) 
+= C(\bth)\;\frac{w_j \mathbbm{1}_{j \leq j_{\mbox{\scriptsize \em max}}}(\bth) }{M(L_j)} \; .
+\label{pjcth}  \end{equation}
+
+We sample the $\bth$ distribution (\ref{bthcj}) using the affine invariant stretch move sampler
+from the emcee package \cite{D}.
+This has the advantage of being able to sample highly anisotropic distributions without problem 
+dependent tuning \cite{H}.
+The sampler uses an {\em ensemble} of $L$ {\em walkers}, each of which is a pair $(j_k,\bth_k)$
+distributed by $p(j,\bth)$.
+The ensemble is the list $[(j_1,\bth_1), \ldots, (j_L,\bth_L)]$.
+The target ensemble distribution is that the $(j_k,\bth_k)$ are independent samples of $p(j,\bth)$,
+see \cite{GW} for more exposition.
+The acceptance rule below is
+\begin{equation}
+\mbox{Prob}(\mbox{ accept }) 
+= \max\left( \, z^{n-1} \frac{p_j(\bth_k^{\prime})}{p_j(\bth_k)},\, 1\right) \; .
+\label{ar}  \end{equation}
+Here $n$ is the dimension of the parameter space.
+The emcee references explain why this rule works.
+They also give a formula and a sampling algorithm for the stretch parameter distribution $p_a(z)$ below.
+The following pseudocode describes the algorithm for one sweep through the ensemble.
+\begin{algorithmic}
+\For{$k = 1,\ldots,L$}
+   \State choose $m \in \left\{1,\ldots,L\right\}$, $m \neq k$, at random      
+             \hspace{.4in} $\mbox{//}$ find a stretch move partner
+   \State choose stretch $z \sim p_a(z)$
+   \State set $\bth^{\prime}_k = \bth_m + z(\bth_k - \bth_m)$
+              \hspace{1.45in} $\mbox{//}$ propose new $\bth_k$
+   \State evaluate $p_{k}(\bth^{\prime}_k)$, accept or reject
+              \hspace{1in} $\mbox{//}$ see (\ref{ar}) for the acceptance rule
+   \State if accept, $\bth_k \rightarrow \bth_k^{\prime}$
+   \State resample $j_k$ from the distribution (\ref{pjcth})
+\EndFor
+\end{algorithmic}
+
+The algorithm above is a generalization of the emcee algorithm as previously described.
+The difference here is that the helper walker $\bth_m$ is drawn from a distribution that is 
+probably distinct from the distribution of $\bth_k$.
+The distributions are distinct if $j_k \neq j_m$.
+The justification is given by the following fact, which we would state as a lemma if we were writing
+for mathematicians.
+Suppose $X \sim p(x)$ and $Y \sim q(y)$ are two random variables in ${\mathbb R}^n$.
+Suppose we propose $X^{\prime} = Y + z(X-Y)$ and accept/reject according to the stretch move rule.
+Then the new $(X,Y)$ pair also are independent samples from $p$ and $q$ respectively.
+The proof is to repeat the justification given in \cite{GW} and notice that it works just as well
+if the $Y$ distribution is $q \neq p$.
+
+
+
+
+
+
+
+
+
+\end{document}

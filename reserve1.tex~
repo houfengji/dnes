@@ -1,0 +1,69 @@
+
+\section{Linear Basis Function Model}
+With $\mathbf{x}$ as inputs and $\boldsymbol{\theta}$ as parameters, the following
+\begin{equation}
+y(\mathbf{x}, \boldsymbol{\theta}) = \theta_0 +\sum_{j=1}^{M-1}{\theta_j\phi_j(\mathbf{x})}
+\end{equation}
+would be a linear basis function model in that all the parameters $\boldsymbol{\theta}$ only appear in linear. $M$ is the dimension of the model, a.k.a. how many basis functions we use (we consider $\phi_0(\mathbf{x})=1$ also a basis function). If $\mathbf{x} = x$ and $\phi_j(\mathbf{x})=x^j$, the model is simply a polynomial fit or a linear regression. We can rewrite the model as
+\begin{equation}
+y(\mathbf{x}, \boldsymbol{\theta})=\boldsymbol{\phi}^\mathrm{T}(\mathbf{x})\boldsymbol{\theta},
+\end{equation}
+where $\boldsymbol{\theta} = (\theta_0,\ldots,\theta_{M-1})^\mathrm{T}$ and $\boldsymbol{\phi} = (\phi_0=1,\ldots,\phi_{M-1})^\mathrm{T}$. Corresponding to data which should have multiple row, we write the model in a column vector form to match the target $\mathbf{t}=(t_1,\ldots,t_N)^\mathrm{T}$ and the mutiple-row input $(\mathbf{x}_1,\ldots,\mathbf{x}_N)^\mathrm{T}$,
+\begin{equation}
+\mathbf{y}=\mathbf{\Phi}\boldsymbol{\theta},
+\end{equation}
+where $\mathbf{y}$ is an $N$-dimension column vector and $\mathbf{\Phi}$ is an $N$-by-$M$ matrix,
+\begin{equation}
+\mathbf{\Phi}=\left(
+\begin{array}{cccc}
+\phi_0(\mathbf{x}_1) & \phi_1(\mathbf{x}_1) & \cdots & \phi_{M-1}(\mathbf{x}_1) \\
+\phi_0(\mathbf{x}_2) & \phi_1(\mathbf{x}_2) & \cdots & \phi_{M-2}(\mathbf{x}_2) \\
+\vdots & \vdots & \ddots & \vdots \\
+\phi_0(\mathbf{x}_N) & \phi_1(\mathbf{x}_N) & \cdots & \phi_{M-1}(\mathbf{x}_N)
+\end{array} \right).
+\end{equation}
+
+\subsection{Bayesian Linear Model}
+The likelihood function for linear basis function model is straightfoward. Note that because all the parameters only appear in linear terms, the likelihood function is an un-normalized gaussian distribution for all the parameters. The likelihood is
+\begin{equation}
+\left(\frac{\beta}{2\pi}\right)^{N/2}\exp{\left(-\frac{\beta}{2}(\mathbf{t}-\mathbf{\Phi}\boldsymbol{\theta})^\mathrm{T}(\mathbf{t}-\mathbf{\Phi}\boldsymbol{\theta})\right)}.
+\end{equation}
+The conjugate prior in this case is also a gaussian
+\begin{equation}
+p(\boldsymbol{\theta})=\mathcal{N}(\boldsymbol{\theta}|\mathbf{m}_0,\mathbf{S}_0),
+\end{equation}
+where the $\mathbf{m}_0$ and $\mathbf{S}_0$ would be the hyper-parameters. And the posterior would also be a gaussian
+\begin{equation}
+p(\boldsymbol{\theta}|\mathbf{t})=\mathcal{N}(\boldsymbol{\theta}|\mathbf{m}_N,\mathbf{S}_N),
+\end{equation}
+where I just use target $\mathbf{t}$ to represent data and
+\begin{eqnarray}
+\mathbf{m}_N & = & \mathbf{S}_N(\mathbf{S}_0^{-1}\mathbf{m}_0+\beta\mathbf{\Phi}^\mathrm{T}\mathbf{t})\\
+\mathbf{S}_N^{-1} & = & \mathbf{S}_0^{-1}+\beta\mathbf{\Phi}^\mathrm{T}\mathbf{\Phi}.
+\end{eqnarray}
+The matrix $\mathbf{S}_N^{-1}$ is the hessian matrix for the gaussian posterior. The evidence is analytic and easy to evaluate, the logarithm of which is
+\begin{equation}
+-\frac{M}{2}\log{\det{\mathbf{S}_0}}+\frac{N}{2}\log\beta-\frac{N}{2}\log2\pi-\frac{1}{2}\log{\det{\mathbf{S}_N^{-1}}}+exponent\,\,residual.
+\end{equation}
+The exponent residual is
+\begin{equation}
+-\frac{\beta}{2}(\mathbf{t}-\mathbf{\Phi}\mathbf{m}_N)^\mathrm{T}(\mathbf{t}-\mathbf{\Phi}\mathbf{m}_N)-\frac{1}{2}(\mathbf{m}_N-\mathbf{m}_0)^\mathrm{T}\mathbf{S}_0^{-1}(\mathbf{m}_N-\mathbf{m}_0).
+\end{equation}
+We get the residul by simply plugging in $\mathbf{m}_N$ because it will cancel the whole exponent in posterior since $\mathbf{m}_N$ is the mean of the gaussian posterior.
+
+\section{Polynomial Fitting Decision Test Case}
+Polynomial model is a simple case of linear model. We use fake data from a disturbed polynomial to test the validity of the ensemble version. We generate $L=151$ fake data points from
+\begin{equation}
+y = 15-12x+9x^2-x^3,\,\,\,\,x\in[-5,10],
+\end{equation}
+where all the $x$'s are spaced uniformly with $0.1$ and we add a white noise of $N(0,5^2)$ to the data. We fit the data with a 4-dimension polynomial model (the same as the polynomial from which fake data is generated). We give the all 4 parameters the same gaussian prior
+\begin{equation}
+\pi(\theta_j)=\frac{1}{\sqrt{2\pi}}\frac{1}{\sqrt{s_0^2}}\exp{-\frac{1}{2}\frac{\theta_j^2}{s_0^2}},\,\,\,\,j=0,\,1,\,2,\,3,
+\end{equation}
+where $s_0=6$. The data model is also gaussian, so the likelihood is
+\begin{equation}
+L(\theta)=\prod_{k=1}^L{\frac{1}{\sqrt{2\pi}}\frac{1}{\sqrt{error_{data}^2}}}\exp{-\frac{1}{2}\frac{[y_{data}-(\theta_0+\theta_1 x_{data}+\theta_2 x_{data}^2+\theta_3 x_{data}^4)]^2}{error_{data}^2}},
+\end{equation}
+where $error_{data}$ is actually just $5$ due to the gaussian noise.
+
+The evidence for this 4-dimension polynomial fit for the fake data is $\exp{(-473.3829207243579)}$ but my code has yet to recover this result.

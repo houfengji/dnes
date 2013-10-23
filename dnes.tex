@@ -1,0 +1,422 @@
+\documentclass[letterpaper, preprint]{aastex}
+\usepackage{amsmath, amsfonts, bbm, bm, calc}
+\usepackage{graphicx}
+%\usepackage[pdftex]{graphicx}
+%\usepackage{epstopdf}
+\newcounter{address}
+\usepackage{color}
+\newcommand{\latin}[1]{\emph{#1}}
+\newcommand{\etal}{\latin{et\,al.}}
+\newcommand{\ie}{\latin{i.\,e.}}
+\newcommand{\eg}{\latin{e.\,g.}}
+\newcommand{\unit}[1]{\mathrm{#1}}
+
+
+\definecolor{red}{rgb}{1,0,0}
+\definecolor{blue}{rgb}{0,0,1}
+\definecolor{darkgreen}{rgb}{0,0.5,0}
+
+\begin{document}
+\title{
+  Diffusive Nested Ensemble Sampling
+}
+
+\begin{abstract}
+We proposed an affine invariant ensemble version of the Diffusive Nested Sampling Method and did some tests on it. (still under development)
+
+\end{abstract}
+
+\keywords{
+methods: data analysis
+---
+methods: numerical
+---
+methods: statistical
+---
+bayesian
+}
+
+\section{Introduction}
+
+In bayesian decision theory, one should return the best mixture of competing models instead of simply deciding which model is the best. To achieve this, the evaluation of evidence integral $Z$ is required. Bayesian decision theory can be summarized as
+\begin{equation}
+P(\mathrm{Model}_j|\mathrm{Data})=\frac{P(\mathrm{Data}|\mathrm{Model}_j)P(\mathrm{Model}_j)}{\sum_j{P(\mathrm{Data}|\mathrm{Model}_j)P(\mathrm{Model}_j)}},
+\label{eq:bayesian-decision-thoery}
+\end{equation}
+which is just the Bayes law. The \textit{likelihood} in Eqn. (\ref{eq:bayesian-decision-thoery}) is in fact the evidence $Z_j$ for model j.
+\begin{equation}
+Z_j=P(\mathrm{Data}|\mathrm{Model}_j)=\int P(\mathrm{Data}|\theta, \mathrm{Model}_j) P(\theta|\mathrm{Model}_j)\mathrm{d}\theta,
+\end{equation}
+where $P(\mathrm{Data}|\theta, \mathrm{Model}_j)$ is the likelihood of parameter $\theta$ for model j and $P(\theta|\mathrm{Model}_j)$ is the prior of parameter $\theta$ for model j. To make notations simple, we will use $L(\theta)$ for the likelihood and $\pi(\theta)$ for the prior. We'll also drop the index $j$ in $Z_j$ because the discussion applies to all models. So the evidence can be written as
+\begin{equation}
+Z=\int\! L(\theta)\pi(\theta)\mathrm{d}\theta.
+\end{equation}
+The prior $\pi(\theta)$ is normalized in the parameter space, that is
+\begin{equation}
+\int\!\pi(\theta)\mathrm{d}\theta=1,
+\end{equation}
+while the likelihood $L(\theta)$ is not.
+
+However, evaluating or even estimating the evidence integral has always been challenging. Diffusive Nested Sampling proves to be an efficient and accurate method to evaluate or estimate the evidence \citep{brewer11a}. We hope to take advantage of affine invariant ensemble sampler \citep{goodman10a} to make diffusive nested sampling even more efficient.
+
+
+\section{Diffusive Nested Sampling}
+
+In nested sampling, we change the variable in the evidence integral from parameter $\theta$ to the prior mass
+\begin{equation}
+M(L^*)=\int_{L(\theta)>L^*}\!\pi(\theta)\mathrm{d}\theta,
+ \label{eq:prior-mass}
+\end{equation}
+which is, in another word, cumulant prior mass covering the area whose likelihood values are greater than $L^*$ \citep{skilling06a}. $M$ is a monotonically decreasing function of $L^*$ and it ranges from 0 to 1. And the mapping between $M$ and $L^*$ is a bijection. An infinitesimal increment of $M$ is
+\begin{equation}
+\mathrm{d}M=\int_{L^*-\mathrm{d}L^*<L(\theta)<L^*}\!\pi(\theta)\mathrm{d}\theta = \pi(\theta)\times \mathrm{volume\,of}\,\theta,\,\mathrm{satisfying}\, L^*-\mathrm{d}L^*<L(\theta)<L^*.
+\end{equation}
+Multiply both sides with $L^*$ and integrate. It is easy to see that
+\begin{equation}
+\int^1_0\! L^*\mathrm{d}M=\int\!L(\theta)\pi(\theta)\mathrm{d}\theta.
+\end{equation}
+so evidence $Z$ can be expressed as
+\begin{equation}
+Z=\int^1_0\! L^*(M)\mathrm{d}M.
+ \label{eq:evidence-prior-mass}
+\end{equation}
+So the integral $Z$ is the area below the $L^*(M)$ curve. In most cases, it is impossible to know the function $L^*(M)$ analytically and evaluate the integral analytically. Note from Eqn. (\ref{eq:evidence-prior-mass}) that $M$ can be viewed as a random variable with uniform distribution. Nested sampling takes advantage of this and proposes to build the $L^*(M)$ curve statistically.
+
+\subsection{Level and Constrained Prior}
+In nested sampling, we first try to find several points on the $L^*(M)$ curve, $\{(M_0, L_0^*),(M_1,L_1^*),\ldots\}$. We call these points levels. The $L^*$ is called a level's likelihood threshold or just threshold. Each level defines a constrained prior,
+\begin{equation} 
+p_{L_j^*}(\theta) = \frac{\pi(\theta)}{M_j}\mathbbm{1}_{L(\theta)>L_j^*},
+\label{eq:constrained-prior}
+\end{equation}
+where
+\begin{eqnarray*}
+\mathbbm{1}_{L(\theta)>L_j^*} &=& 1,\,\,L(\theta)>L_j^*,\\
+& &0,\,\,\mathrm{otherwise},
+\end{eqnarray*}
+and note that $p_{L_j^*}$ is properly normalized by $M_j$. 
+
+\subsection{Setting Level Thresholds}
+We already know the right-most point on the curve, $\left(M_0 = 1,\,L_0^*=0\right)$, which is level 0, because there is no restriction on the likelihood function with $L_0^*=0$ and from the definition of prior mass, Eqn. (\ref{eq:prior-mass}), $M(\theta)$ should cover the whole parameter space. And most likely another point on the left-most side of the curve, $\left(M_{max}=0,\,L_{max}\right)$, because we must have found the optimal likelihood before we start to consider evaluating the evidence integral. 
+
+To find a new level, we generate $N$ samples from the prior density $\pi(\theta)$, calculate the likelihoods of the $N$ samples and get a chain of $N$ likelihoods. We then rank the likelihoods in the chain in descending order and find the $N/e$-th likelihood, which we call $L_1^*$. This would give us a new point on the $L^*(M)$ curve, which is approximately $(1/e,\,L_1^*)$ . This is level 1 and $L_1^*$ is the likelihood threshold of level 1. $M_1\approx1/e$ is the prior mass that level 1 covers (the prior mass of the parameters whose likelihoods are larger than $L_1^*$). $M_1$ is a random variable and its expectation and variance will be given below. 
+
+To find the next point, we generate $N$ samples from the constrained prior density $p_{L_1^*}(\theta)$ defined in Eqn. (\ref{eq:constrained-prior}). But in most cases, we actually generate samples from a mixture of $p_{L_1^*}(\theta)$ and prior $\pi(\theta)$ until we have $N$ samples with likelihood larger than  the previous level's threshold $L_1^*$. We sample  mixture because the area covered by level 1 may be disconnected in paremeter space and only sampling the constrained prior $p_{L_1^*}(\theta)$ may get us stucked in only one or few of those disconnected areas. Like before, we get a chain of $N$ likelihoods, rank these likelihoods in descending order and find the $N/e$-th likelihood, which we call $L_2^*$. This would give us another point on the $L^*(M)$ curve, which is approximately $(1/e^2,L_2^*)$. This is level 2 and $L_2^*$ is the likelihood threshold of level 2. Again, $M_2\approx1/e^2$ is the prior mass that level 2 covers. Like $M_1$, $M_2$ is also a random variable. 
+
+We keep going until new levels' contribution to the integral is small compared to our requirement of precision. At the end, we get a series of points on the $L^*(M)$ curve, $\{(M_0, L_0^*),(M_1,L_1^*),(M_2,L_2^*), \ldots\}$. Correspondingly, we also have a series of mixture of constrained priors,
+\begin{equation}
+p(\theta) = \sum_{j=0} w_j p_{L_j^*},
+\label{eq:mixture-constrained-prior}
+\end{equation}
+where $p_{L_j^*}$ is the constrained prior defined by level $j$,
+\begin{equation} 
+p_{L_j^*}(\theta) = \frac{\pi(\theta)}{M_j}\mathbbm{1}_{L(\theta)>L_j^*},\,\,\,j=0,1,2,\ldots.
+\end{equation}
+and $w_j$ are the weights of each level which sum up to 1,
+\begin{equation}
+\sum_{j=0}w_j = 1.
+\end{equation}
+The choice of weight may change according to different purposes. For example, when we are building a new level, we might want to put more weight on the last level. And in the final stage, when we sample all the levels together, we might want to have the same weight on all the levels.
+
+\subsection{Affine Invariant Stretch Move}
+To implement the affine invariant ensemble sampler to diffusive nested sampling, we assign different levels to different walkers in the ensemble. This probably would cause concern since all the walkers would be from different density and this might render stretch move invalid. But in the stretch move, the helper walker does not interfere with the walker which it helps, even if they are from different density distribution. 
+
+Our goal is to sample the mixture of the constrained priors Eqn. (\ref{eq:mixture-constrained-prior}). The way we realize it is by updating the walkers according to their own constrained priors Eqn. (\ref{eq:constrained-prior}) and updating the indeces of the levels of those walkers according to their weights and other restrictions. So the algorithm consists of two part: updating the ensemble of walkers followed or preceded by updating all the level indeces of those walkers. The first part can be summarized as:
+\begin{sffamily}
+\begin{itemize}
+\item randomly choose a helping walker $Y$
+\item propose a new walker with stretch move: $X_{new} \rightarrow Y + \alpha (X_{old}-Y)$, where $\alpha$ is a random variable from some distribution \citep{goodman10a}.
+\item if the proposed $X_{new}$ has a likelihood smaller than its current threshold $L^*$, reject the proposal.
+\item else, accept the proposed $X_{new}$ with probability: $\mathrm{max}\left(z^{\mathrm{dim}-1}\frac{p_{L^*}(X_{new})}{p_{L^*}(X_{old})},1\right)$.
+\end{itemize}
+\end{sffamily}
+The second part can be summarized as \citep{brewer11a}:
+\begin{sffamily}
+\begin{itemize}
+\item propose a new level for a walker in the ensemble, with proposal probability, Eqn. (\ref{eq:index-proposal-prob}): $i \rightarrow j$
+\item if $j \geq i$, accept the proposal if, in parameter space, the likelihood the walker is larger than $L_j^*$; reject if it is smaller.
+\item else, accept the proposal with probability $\frac{M_i}{M_j}\frac{w_j}{w_i}$.
+\end{itemize}
+\end{sffamily}
+The proposal probabilities for the second part, $T_{i\rightarrow j}$, can be written as entries of matrix $T$,
+\begin{equation}
+(T_{i\rightarrow j}) = (T_{ij})
+\begin{pmatrix}
+0.5 & 0.5 & & & & & \\
+0.5 & 0 & 0.5 & &  & & \\
+ & 0.5 & 0 & 0.5 &  &  & \\
+ &  & \ddots & \ddots & \ddots  &  & \\
+ &  &  &  0.5 &  0 & 0.5 &  \\
+ &  &  &  &  0.5 & 0 & 0.5 \\
+ &  &  &  &  & 0.5 & 0.5 \\
+\end{pmatrix}
+\label{eq:index-proposal-prob}
+\end{equation}
+
+\subsection{Refining Level Masses}
+Suppose we have $J$ new levels in total, $\{(M_0, L_0^*),(M_1,L_1^*),(M_2,L_2^*), \ldots,(M_J,L_J^*)\}$, where $(M_0, L_0^*)$ is not counted as a new level. However, the prior masses $\{M_0,M_1,\dots,M_J\}$ are only approximations of the true prior masses $\{M^*_0,M^*_1,\dots,M^*_J\}$. As a result, the normalization of constrained prior Eqn. (\ref{eq:constrained-prior}) is also approximate. So when we sample the mixture of the constrained priors Eqn. (\ref{eq:mixture-constrained-prior}), we actually sample the following distribution
+\begin{equation}
+p^*(\theta)=C\sum_{j=0}^J w_j\frac{M^*_j}{M_j}\frac{\pi(\theta)}{M^*_j}\mathbbm{1}_{L(\theta)>L_j^*},
+\label{eq:true-mixture-constrained-prior}
+\end{equation}
+where $C$ is a normalization term and of course $M^*_0 = M_0 = 1$. Let there be an extra level whose likelihood threshold $L^*_{J+1}$ is the maximum likelihood and prior mass $M_{J+1}$ is 0. Define the set of parameters whose likelihoods are sandwiched by level $j$ and level $j+1$ as
+\begin{equation}
+B_j = \{\theta|L(\theta)\in[L_j^*,L_{j+1}^*]\},\,\,\,j=0,1,2,\dots,J.
+\end{equation}
+The theoretical probability that a samples is between level 0 and level 1 is ($r$ is used for ratio.)
+\begin{equation}
+r^*_0 = \mathrm{Prob}(B_0)=Cw_0\frac{M^*_0}{M_0}\left(1-\frac{M^*_1}{M^*_0}\right) = C\frac{w_0}{M_0}(M^*_0-M^*_1).
+\end{equation}
+The theoretical probability that a samples is between level 1 and level 2 is
+\begin{equation}
+r^*_2=\mathrm{Prob}(B_1)=Cw_0\frac{M^*_0}{M_0}\left(\frac{M^*_1}{M^*_0}-\frac{M^*_2}{M^*_0}\right)+Cw_1\frac{M^*_1}{M_1}\left(1-\frac{M^*_2}{M^*_1}\right) = C\left(\frac{w_0}{M_0}+\frac{w_1}{M_1}\right)(M^*_1-M^*_2).
+\end{equation}
+Similarly, the theoretical  probability that a samples is between level $j$ and level $j+1$ is
+\begin{equation}
+r^*_j= \mathrm{Prob}(B_j)=C\left(\frac{w_0}{M_0}+\frac{w_1}{M_1}+\ldots+\frac{w_j}{M_j}\right)(M^*_j-M^*_{j+1}).
+\label{eq:theoretical-percentage}
+\end{equation}
+
+From the mixture of the constrained priors Eqn. (\ref{eq:mixture-constrained-prior}), we get a likelihood chain of length $n$. Let the number of likelihood samples sandwiched between level $j$ and level $j+1$ be $n_j$. And the actual percentage of samples between adjacent levels is $\{r_0,r_1,r_2,\dots,r_J\}$ which is just the corresponding $n_j$ devided by $n$. Matching these actual percentages with the theoretical ones $r^*$'s, we get a total of $J+1$ linear equations with $J+1$ unknowns $\{\frac{1}{C}, M^*_1,M^*_2,\ldots,M^*_J\}$,
+\begin{equation}
+A M^* = b,
+\label{eq:refined-mass}
+\end{equation}
+where matrix $A$ is
+\begin{equation}
+A = 
+\begin{pmatrix}
+-r_0 & - \frac{w_0}{M_0} & 0 & 0 & \ldots & 0\\
+-r_1 & \left(\frac{w_0}{M_0}+\frac{w_1}{M_1}\right) & -\left(\frac{w_0}{M_0}+\frac{w_1}{M_1}\right) & 0 & \ldots & 0\\
+-r_2 & 0 &  \left(\frac{w_0}{M_0}+\frac{w_1}{M_1}+\frac{w_2}{M_2}\right) & -\left(\frac{w_0}{M_0}+\frac{w_1}{M_1}+\frac{w_2}{M_2}\right)  & \ldots & 0 \\
+\ldots & \ldots &  \ldots & \ldots & \ldots & \ldots \\
+-r_J & 0 & 0 & 0 & 0 &  \left(\frac{w_0}{M_0}+\frac{w_1}{M_1}+\dots+\frac{w_J}{M_J}\right) 
+\end{pmatrix}
+\end{equation}
+and $M^*$ is the vector of unknowns,
+\begin{equation}
+M^* = 
+\begin{pmatrix}
+\frac{1}{C} & M^*_1 & M^*_2 & M^*_3 & \ldots & M^*_J\\
+\end{pmatrix}^T,
+\end{equation}
+and vector $b$ is 
+\begin{equation}
+b = 
+\begin{pmatrix}
+-\frac{w_0}{M_0} & 0 & 0 & 0 & \ldots & 0\\
+\end{pmatrix}^T.
+\end{equation}
+We solve Eqn. (\ref{eq:refined-mass}) to get the refined prior masses $M^*$'s.
+
+\subsection{Computing Evidence}
+We take the mean of likelihoods sandwiched between two levels,
+\begin{equation}
+\bar{L}_j= \frac{1}{n_j}\sum_{L_j^*\leq L(\theta)<L_{j+1}^*} L(\theta),
+\end{equation}
+where $\theta$ represents samples. Again with the extra level whose likelihood threshold $L^*_{J+1}$ is the maximum likelihood and prior mass $M_{J+1}$ is 0, the evidence is
+\begin{equation}
+Z = \sum_{j=0}^{J} \bar{L}_j (M^*_j - M^*_{j+1}).
+\end{equation}
+
+
+\section{2-d Gaussian Testing Case}
+The algorithm was tested on a 2-d gaussian likelihood and a 2-d uniform prior. The likelihood is
+\begin{equation}
+L(\theta_1,\theta_2)=\frac{1}{2\pi\sigma^2}\exp{\left(-\frac{\theta_1^2+\theta_2^2}{2\sigma^2}\right)},\;\sigma = 1,
+\label{eq:likelihood2}
+\end{equation}
+where $\theta_1$ and $\theta_2$ are the parameters. The prior is
+\begin{equation}
+\pi(\theta_1,\theta_2) = \frac{1}{400},\;\theta_1\in[-10,\,10],\;\theta_2\in[-10,\,10],
+\label{eq:prior2}
+\end{equation}
+and 0 otherwise. This prior basically is a square whose sides' length is 20 and whose area is 400. The evidence is approximately inverse of that area,
+\begin{equation}
+\mathrm{evidence} \approx \frac{1}{400},
+\end{equation}
+where the approximation is equivalent to equality up to machine error because gaussian distribution has extremely thin tail. The likelihood threshold of any level can be analytically calculated in this model. As a matter of fact, the whole $L^*(M)$ curve can be built analytically,
+\begin{equation}
+\log{L^*(M)}=-\log{2\pi}-\frac{200M}{\pi},
+\label{eq:analytical-threshold}
+\end{equation}
+where the number $200$ comes from half the area that the prior covers. Note that $\log{L^*}$ is a linear function of $M$.
+
+\subsection{Testing Level Thresholds Setting}
+The test is to see if the algorithm can build levels matching the analytically calculated ones. Recall that to find a new level, one needs to generate a chain of $N_1$ likelihoods larger than previous level's threshold. ($N_1$ is used so not to be confused with $N_2$ used later.) Each new level requires $N_1$ likelihoods. Two $N_1$'s are tested, $N_{1a} = 10,000$ and $N_{1b} = 100,000$. The larger $N_{1b}$ should give a smaller variance than $N_{1a}$. For both $N_{1a}$ and $N_{1b}$, 6 levels are built  for $10,000$ times in order to check the statistical features of these levels.
+
+For $N_{1a} = 10,000$, after ranking the chain of $N_{1a}$ likelihoods in descending order, the $J_{1a} = 3,678$-th likelihood is picked as the new level's threshold. For $N_{1b} = 100,000$, after ranking the chain of $N_{1b}$ likelihoods. the $J_{1b} = 36,787$-th likelihood is picked as the next level's threshold. 
+
+For $N_{1a}$, the expectation of the prior masses that each level covers are $\left\{\frac{J_{1a}}{N_{1a}+1},\left(\frac{J_{1a}}{N_{1a}+1}\right)^2,\ldots\right\}$. And for $N_{1b}$, the expectation of the prior masses that each level covers are $\left\{\frac{J_{1b}}{N_{1b}+1},\left(\frac{J_{1b}}{N_{1b}+1}\right)^2,\ldots\right\}$. The variance of the prior masses can also be easily calculated. For example, the variance of the 1st level's covered mass is $\frac{(J_{1a})(N_{1a}-J_{1a})}{(N_{1a}+1)^2(N_{1a}+2)}$ for $N_{1a}$ and $\frac{(J_{1b})(N_{1b}-J_{1b})}{(N_{1b}+1)^2(N_{1b}+2)}$ for $N_{1b}$. The expection and variance of the corresponding (logarithm of) likelihood thresholds can then be calculated straightfowardly, because $\log{L^*}$ is a linear fuction of $M$ (from Eqn. (\ref{eq:analytical-threshold})). The mean values of the 6 levels' thresholds are listed in Tab. (\ref{tab:threshold-mean}) for both $N_{1a}$ and $N_{1b}$ together with the corresponding analytical values of the thresholds. The standard deviations with their analytical values are listed in Tab. (\ref{tab:threshold-variance}). The histograms of level1 and level 6 are visualized in Fig. (\ref{fig:level1-6})
+
+
+\subsection{Testing Constrained Prior Mixture}
+We draw samples from a mixture of all the constrained priors defined by true levels listed in Tab. (\ref{tab:true-levels}). Every adjacent two levels define a bin. For each sample, we find two adjacent levels whose thresholds sandwich the likelihood of the sample and that sample can be put into the bin defined by those two levels. The prior masses of samples inside each bin should follow uniform distribution, which is consistent with our testing result, illustrated in Fig. (\ref{fig:hist-gaps}). The variances of the likelihoods of samples can vary dramatically among different bins, Fig. (\ref{fig:level-var}).
+
+\section{High-Dimension Gaussian Testing Case}
+
+In 10-d case, the likelihood is
+\begin{equation}
+L(\boldsymbol{\theta})=\frac{1}{(2\pi\sigma^2)^{10/2}}\exp{\left(-\frac{\boldsymbol{\theta}^2}{2\sigma^2}\right)},\;\sigma = 1,
+\label{eq:likelihood10}
+\end{equation}
+where $\theta_1$ and $\theta_2$ are the parameters. The prior is
+\begin{equation}
+\pi(\boldsymbol{\theta}) = \frac{1}{20^{10}},\;\theta_j\in[-10,\,10],\;j=1,2,\ldots,10,
+\label{eq:prior10}
+\end{equation}
+and 0 otherwise. We make 30 levels in 10-d case so that the last level will cover approximately $1/20^{10}$ of the total prior hyper-volume. To build each level, a likelihood chain of length $N_1$ is generated. After all the levels are built, we sample mixture of constrained priors for $N_2$ times, using these samples to refine the prior masses and evaluate the evidence.
+
+\subsection{Testing Prior Mass Refinement}
+We repeat the prior mass refinement and evidence evaluation for $1,000$ times for different $N_1$'s and $N_2$'s. The mean evidences for all $N_1$'s and $N_2$'s are very close to the true evidence  $9.77\times10^{-14}$. The standard deviations are summarized in Tab. (\ref{tab:N1N2}).
+
+\begin{thebibliography}
+
+\bibitem[Goodman \etal(2010)]{goodman10a}
+Goodman,~J., Weare,~J., 2010, Comm.\ App.\ Math.\ and Comp.\ Sci., 5, 65
+
+\bibitem[Brewer \etal(2011)]{brewer11a}
+Brewer,~B.~J., P\'{a}rtay,~L.~B. \& Cs\'{a}nyi,~G, 2011, Statistics and Computing, 21, 649
+
+\bibitem[Skilling (2006)]{skilling06a}
+Skilling,~J., 2006, Bayesian Analysis, 4, 833
+
+\end{thebibliography}
+
+\clearpage
+
+\begin{table}[h]
+\centering
+\begin{tabular}{c|c|c|c|c}
+\hline
+& \multicolumn{2}{|c|}{$N_{1a}=10,000$} & \multicolumn{2}{|c}{$N_{1b}=100,000$}\\
+\hline
+Level & experimental mean & analytical value & experimental mean & analytical value\\
+\hline
+%1 & $-25.2524932657$ & -25.2504110407 &-25.2569110901 & -25.2569744415\\
+%2 & $-10.4490276068$ & -10.4481460353 &-10.4529865267 & -10.4529742668\\
+%3 & $-5.00537185332$ & -5.00441733912 &-5.00706799218 & -5.00708118148\\
+%4 & $-3.00304284678$ & -3.00241412501 &-3.00382130366 & -3.00372052579\\
+%5 & $-2.26627087499$ & -2.26615096917 &-2.26679664954 & -2.26675161107\\
+%6 & $-1.99543090186$ & -1.99538045751 &-1.99566730020 & -1.99564556747\\
+1 & $-25.2525$ & -25.2504 &-25.2569 & -25.2570\\
+2 & $-10.4490$ & -10.4481 &-10.4530 & -10.4530\\
+3 & $-5.00537$ & -5.00442 &-5.00707 & -5.00708\\
+4 & $-3.00304$ & -3.00241 &-3.00382 & -3.00372\\
+5 & $-2.26627$ & -2.26615 &-2.26680 & -2.26675\\
+6 & $-1.99543$ & -1.99538 &-1.99567 & -1.99565\\
+\hline
+\end{tabular}
+\caption{The experiment was repeated $10,000$ times. The experimental mean values of the logarithm of the 6 levels' thresholds in the table are the mean of the $10,000$ repetitions. Notice that the experimental means for $N_{1b}$ tend to be closer to analytical values than those for $N_{1a}$ as expected.}
+\label{tab:threshold-mean}
+\end{table} 
+
+
+\begin{table}[h]
+\centering
+\begin{tabular}{c|c|c|c|c}
+\hline
+& \multicolumn{2}{|c|}{$N_{1a}=10,000$} & \multicolumn{2}{|c}{$N_{1b}=100,000$}\\
+\hline
+Level & experimental std & analytical std & experimental std & analytical std\\
+\hline
+%1 & 0.362464067018 & 0.306920840463 &0.113447431175 & 0.0970782243791\\
+%2 & 0.182170358952 & 0.159635079214 &0.0573525182345 & 0.0505043419815\\
+%3 & 0.0813923486799 & 0.0719053024947 &0.0256098683388 & 0.0227544447107\\
+%4 & 0.0344988807296 & 0.0305363582783 &0.0107822459632 & 0.00966557076926\\
+%5 & 0.0141857964076 & 0.0125562283731 &0.00441558031849 &0.00397534117105\\
+%6 & 0.00570328599704 & 0.00505867509443 &0.00177408254067 &0.00160197939064\\
+1 & 0.36 & 0.31 &0.11 & 0.097\\
+2 & 0.18 & 0.16 &0.057 & 0.051\\
+3 & 0.081 & 0.072 &0.026 & 0.023\\
+4 & 0.034 & 0.031 &0.011 & 0.0097\\
+5 & 0.014 & 0.013 &0.0044 & 0.0040\\
+6 & 0.0057 & 0.0051 &0.0018 & 0.0016\\
+\hline
+\end{tabular}
+\caption{The experiment was repeated $10,000$ times. The experimental std of the logarithm of the 6 levels' thresholds in the table are the variance of the $10,000$ repetitions. The algorithm almost achieves the expected precision. Note that the std's for $N_{1a}$ are approximately $\sqrt{10}$ times those for $N_{1b}$.}
+\label{tab:threshold-variance}
+\end{table} 
+
+\begin{table}[h]
+\centering
+\begin{tabular}{c|c|c}
+\hline
+level index & log likelihood threshold & log prior mass\\
+\hline
+1 & -29.8629798621251 & -1\\
+2 & -15.0587589731369 & -2\\
+3 & -9.61259046551731 & -3\\
+4 & -7.60905703840871 & -4\\
+5 & -6.87199828087570  & -5\\
+6 & -6.60084951704394 & -6\\
+7 & -6.50109946133118 & -7\\
+8 & -6.46440346657875 & -8\\
+9 & -6.45090376453600  & -9\\
+10 &-6.44593750169253 & -10\\
+\hline
+\end{tabular}
+\caption{True levels' thresholds and prior masses are listed in the table. 10 Levels are given. We keep many digits because these are true levels.}
+\label{tab:true-levels}
+\end{table} 
+
+%\begin{table}[h]
+%\centering
+%true evidence: $\exp{(-5.991464547107982)}=2.5\times10^{-3}$\\
+%\begin{tabular}{c|c|c}
+%\hline
+%$N$ & evidence mean ($\times10^{-3}$)  & evidence std ($\times10^{-3}$)\\
+%\hline
+%1,000 & 2.516691134661 & 0.209059516266437\\
+%2,000 & 2.507236697647 & 0.146426121804169\\
+%3,000 & 2.506617141600 & 0.123673129501314\\
+%5,000 & 2.501362156538 & 0.0930265392133242\\
+%10,000 & 2.501949543083 & 0.0660132437877751\\
+%20,000 & 2.500442865432 & 0.0464402837653896\\
+%30,000 & 2.501127417942 & 0.0381871277742115\\
+%50,000 & 2.499991370460 & 0.0301503918624074\\
+%100,000 & 2.500207281072 & 0.0215658324785832\\
+%\hline
+%\end{tabular}
+%\caption{$N$ is the length of the likelihood chain to build each level. For each different $N$, 10 levels are built. Evidences were evaluated with $1,000,000$ samples from the mixture of the constrained priors, Eqn. (\ref{eq:constrained-prior}). Every experiment is repeated for 10,000 times to evaluate the mean and standard deviation.}
+%\label{tab:evi-mean-var}
+%\end{table} 
+
+\begin{figure}[h]
+ \includegraphics[width=0.99\linewidth]{level1.pdf}\\
+ \includegraphics[width=0.99\linewidth]{level6.pdf}
+ \caption{Level 1 (upper) and Level 6 (lower): Both histograms are plotted with 25 bins and 10,000 samples. (Here samples mean repetitions of the experiment, not the samples of likelihood to build every single level.) The left-hand side is the histogram of levels built with $N_{1a}$ likelihoods and the right-hand side is the histogram of levels built with $N_{1b}$ likelihoods. The \textcolor{red}{red} solid lines indicate the true values of the logarithm of the likelihood thresholds of levels and \textcolor{darkgreen}{dark green} solid lines indicate the experimental mean of the logarithm of the likelihood thresholds, which cannot be distinguished from the true values in these pictures. The \textcolor{red}{red} dashed lines indicate the theoretical standard deviation and the \textcolor{darkgreen}{dark green} dashed lines indicate the experimental standard deviation.}
+ \label{fig:level1-6}
+\end{figure}
+
+\begin{figure}[h]
+ \includegraphics[width=0.45\linewidth]{histgaps-01-02.pdf}
+ \includegraphics[width=0.45\linewidth]{histgaps-03-04.pdf}\\
+ \includegraphics[width=0.45\linewidth]{histgaps-05-06.pdf}
+ \includegraphics[width=0.45\linewidth]{histgaps-07-08.pdf} \\
+\caption{Histograms of prior masses of samples inside a bin sandwiched by two adjacent levels. 4 examples are given. All are approximately uniform distribution.}
+ \label{fig:hist-gaps}
+\end{figure}
+
+\begin{figure}[h]
+ \includegraphics[width=0.99\linewidth]{stdev-between-gaps.pdf}
+\caption{The 10 levels in the figure are the true levels summarized in Tab. (\ref{tab:true-levels}). Notice that the standard deviation of likelihood samples between level 3 ($\log{M} = -3$) and level 6 ($\log{M} = -6$) will pretty much determine the standard deviation of the final result.}
+ \label{fig:level-var}
+\end{figure}
+
+\begin{table}[h]
+\centering
+std for 10-d case ($\times10^{-15}$)\\
+\begin{tabular}{c|c|c|c}
+\hline
+ & $N_1=10^4$ & $N_1=3\times10^4$ & $N_1=10^5$\\
+\hline
+$N_2=10^6$                  & 3.1760  & 3.2465 & 3.1653 \\
+$N_2=3\times10^6$ & 1.8297  & 1.8816 & 1.8390 \\
+$N_2=10^7$                  & 0.9887  & 0.9704 &  1.0238\\
+\hline
+\end{tabular}
+\caption{The standard deviations for different $N_1$'s and $N_2$'s. The experiments are repeated for $1,000$ times. Compared with evidence value $9.77\times10^{-14}$, all the standard deviations are reasonably small. But $N_2$ is clearly more important in reducing variance. Note that there are 30 levels in this case, $30\times N_1$ and $N_2$ are actually comparable.}
+\label{tab:N1N2}
+\end{table} 
+
+\end{document}
