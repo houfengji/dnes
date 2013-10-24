@@ -1,9 +1,10 @@
 \documentclass[letterpaper, preprint]{aastex}
 \usepackage{amsmath, amsfonts, bbm, bm, calc}
 \usepackage{graphicx}
-\usepackage{caption}
-\usepackage{subcaption}
+%\usepackage{caption}
+%\usepackage{subcaption}
 \usepackage[normalem]{ulem}
+\usepackage[caption=false]{subfig}
 
 %\usepackage[pdftex]{graphicx}
 %\usepackage{epstopdf}
@@ -15,6 +16,7 @@
 \newcommand{\eg}{\latin{e.\,g.}}
 \newcommand{\unit}[1]{\mathrm{#1}}
 \newcommand{\bth} {\boldsymbol \theta}
+\newcommand{\bal} {\boldsymbol \alpha}
 \newcommand{\md}{\mathrm{d}}
 \newcommand{\var}{\mathrm{Var}}
 \newcommand{\ee}{\mathrm{E}}
@@ -35,43 +37,65 @@
 
 \begin{document}
 \title{
-  Evaluating Marginalized Likelihood of Substellar-Companion Models with Radial Velocity Data by means of Diffusive Nested Ensemble Sampling
+  The Probability of Multi-Companion Models for Stellar Radial Velocity Data by means of Diffusive Nested Ensemble Sampling
 }
 
+\author{
+  Fengji~Hou\altaffilmark{\ref{CCPP},\ref{email}},
+  Brendon~Brewer\altaffilmark{\ref{Auckland}}
+  Jonathan~Goodman\altaffilmark{\ref{Courant}},
+  David~W.~Hogg\altaffilmark{\ref{CCPP},\ref{MPIA}}
+}
+
+\setcounter{address}{1}
+\altaffiltext{\theaddress}{\stepcounter{address}\label{CCPP} Center
+  for Cosmology and Particle Physics, Department of Physics, New York
+  University, 4 Washington Place, New York, NY 10003}
+\altaffiltext{\theaddress}{\stepcounter{address}\label{email} To whom
+  correspondence should be addressed: \texttt{fh417@nyu.edu}}
+\altaffiltext{\theaddress}{\stepcounter{address}\label{Auckland}
+  Department of Statistics, University of Auckland, Auckland 1010, New Zealand}
+\altaffiltext{\theaddress}{\stepcounter{address}\label{Courant}
+  Courant Institute of Mathematical Sciences, New York University, 251
+  Mercer Street, New York, NY 10012}
+\altaffiltext{\theaddress}{\stepcounter{address}\label{MPIA}
+  Max-Planck-Institut f\"ur Astronomie, K\"onigstuhl 17, D-69117
+  Heidelberg, Germany}
+
 \begin{abstract}
-Fully marginalized likelihood, or bayesian evidence, is of great significance in bayesian data analysis, because fully marginalized likelihood directly gives us the probability of a model or a mixture of models being true, furthermore it also provides us with a properly normalized posterior distribution, which enables population study in the framework of hierarchical models. This paper contains an exposition of diffusive nested sampling as an approach to computing the marginalized likelihood. We also refine diffusive nested sampling by applying an affine invariant ensemble sampler. We show that the modified diffusive nested sampling performs efficiently and returns the correct results on trial problems. We apply the algorithm to the problem of multi-companion model fitting of the radial velocity data of HIP 88048. HIP 88048 has two confirmed companions announced by Quirrenbach in 2011. We are able to evaluate the fully marginalized likelihood of 1-, 2-, 3-, and 4-companion models given the radial velocity data of HIP 88048 under our choice of the prior distribution. We find that the 2-companion model indeed has the largest marginalized likelihood, among from 1- up to 4-companion models. 
+The fully marginalized likelihood, or Bayesian evidence, is of great importance in Bayesian data analysis, because it is involved in calculating the probability of a model or re-weighting a mixture of models conditioned on data. It is, however, extremely challenging to compute. This paper contains an exposition of diffusive nested sampling as an approach to computing the marginalized likelihood. We also refine the algorithm by employing an affine invariant ensemble sampler. We show that this sampler performs efficiently and returns correct results on trial problems. We apply the algorithm to the problem of fitting radial velocity data from HIP 88048. This star has two known companions. We are able to evaluate the fully marginalized likelihood of 1-, 2-, 3-, and\\ 4-companion models given the radial velocity data of HIP 88048 and a sensible choice for prior distribution. We find that, among the 4 models, the 2-companion model indeed has the largest marginalized likelihood. And the marginalized likelihood of the 3-companion model is about half that of the 2-companion model, if we require the 3rd companion's amplitude $K$ to be greater than $0\,\unit{m\,s^{-1}}$ in the prior. However, if we require $K$ to be greater $10\,\unit{m\,s^{-1}}$ in the prior, the marginalized likelihood of the 3-companion model becomes several orders of magnitude smaller than that of the 2-companion model.
 
 \end{abstract}
 
 \keywords{
-methods: nested sampling
----
-methods: markov chain monte carlo
----
 methods: data analysis
 ---
-bayesian decision theory
+methods: statistical
+---
+methods: numerical
+---
+techniques: radial velocities
 ---
 stars: individual (HIP 88048)
 }
 
 \section{Introduction}
 
-As of today, hundreds of extrasolar planets have been discovered through various methods. Among them, about 60\% have been found through radial velocity (RV) surveys \citep{mitchell13a}. Bayesian inference is usually employed to make parameter estimations given the RV data. One of the advantages of bayesian data analysis is that it quantifies uncertainty naturally through the use of probability \citep{gelman04a}. However, one piece of the puzzle that usually eludes bayesian statistician is how to evaluate the fully marginalized likelihood.
+As of today, hundreds of extrasolar planets have been found through radial velocity (RV) surveys \citep{mitchell13a}. Bayesian inference is usually employed to make parameter estimation given RV data. \qer{(CITE)} One of the advantages of Bayesian data analysis is that it quantifies uncertainty naturally through the use of probability \citep{gelman04a}. However, one piece of the puzzle that usually eludes Bayesian statistician is how to evaluate the fully marginalized likelihood.
 
-Fully marginalized likelihood, or simply marginalized likelihood, is defined as follow: Given data $\cal D$, the posterior probability of model $\mathrm{m}_n$ is
+The fully marginalized likelihood, or simply marginalized likelihood, sometimes called the Bayesian evidence or evidence integral, is defined as follows: Given data $\cal D$, the posterior probability of model $\mathrm{m}_n$ is
 \begin{equation}
 P(\mathrm{m}_n\mid{\cal D}) \equiv \frac{P({\cal D}\mid\mathrm{m}_n)\,P(\mathrm{m}_n)}{\sum_n{P({\cal D}\mid\mathrm{m}_n)\,P(\mathrm{m}_n)}}\; ,
-\label{eq:bayesian-decision-theory}
+\label{eq:Bayesian-decision-theory}
 \end{equation}
-where $P( {\mbox m}_n)$ is the prior probability of model ${\mbox m}_n$ and $P({\cal D}\mid {\mbox m}_n)$ is the likelihood of data $\cal D$ given model ${\mbox m}_n$, which is \emph{marginalized likelihood} of model ${\mbox m}_n$ over the model's whole parameter space. More explicitly, suppose model ${\mbox m}_n$ has parameters $\bth_n = (\theta_1,\ldots,\theta_{d_n})$, where $d_n$ is the dimension. Let $\pi_n(\bth_n)$ be the prior of $\bth_n$, and $L_n({\cal D}\mid\bth_n)$ be the likelihood of data $\cal D$ given $\bth_n$ within model ${\mbox m}_n$. The posterior probability of $\bth_n$ given data $\cal D$ is
+where $P( {\mbox m}_n)$ is the prior probability of model ${\mbox m}_n$ and $P({\cal D}\mid {\mbox m}_n)$ is the likelihood of data $\cal D$ given model ${\mbox m}_n$, which is the \emph{marginalized likelihood} of model ${\mbox m}_n$ over the model's whole parameter space. More explicitly, suppose model ${\mbox m}_n$ has parameters $\bth_n = (\theta_1,\ldots,\theta_{d_n})$, where $d_n$ is the number of parameters or dimension. Let $\pi_n(\bth_n)$ be the prior of $\bth_n$, and $L_n({\cal D}\mid\bth_n)$ be the likelihood of data $\cal D$ given $\bth_n$ and ${\mbox m}_n$. The posterior probability of $\bth_n$ given data $\cal D$ and ${\mbox m}_n$ is
 \begin{equation}
-P(\bth_n\mid{\cal D}\, ,\,  {\mbox m}_n) \equiv \frac{P({\cal D}\mid\bth_n\, , \, {\mbox m}_n)\,P(\bth_n\mid {\mbox m}_n)}{P({\cal D}\mid  {\mbox m}_n)} = \frac{L({\cal D}\mid\bth_n)\pi(\bth_n)}{\int{L({\cal D}\mid\bth_n)\pi(\bth_n)\md\bth_n}}\; .
-\label{eq:bayesian-posterior}
+P(\bth_n\mid{\cal D}\, ,\,  {\mbox m}_n) \equiv \frac{P({\cal D}\mid\bth_n\, , \, {\mbox m}_n)\,P(\bth_n\mid {\mbox m}_n)}{P({\cal D}\mid  {\mbox m}_n)} = \frac{L_n({\cal D}\mid\bth_n)\pi_n(\bth_n)}{\int{L_n({\cal D}\mid\bth_n)\pi_n(\bth_n)\md\bth_n}}\; .
+\label{eq:Bayesian-posterior}
 \end{equation}
-The denominator $P({\cal D}\mid {\mbox m}_n)$ is exactly the marginalized likelihood in Eqn.~(\ref{eq:bayesian-decision-theory}),
+The denominator $P({\cal D}\mid {\mbox m}_n)$ is exactly the marginalized likelihood in Eqn.~(\ref{eq:Bayesian-decision-theory}),
 \begin{equation*}
-Z_{ {\mbox m}\;n}({\cal D}) \equiv P({\cal D}\mid {\mbox m}_n) = \int L({\cal D}\mid \bth_n)\, \pi_n(\bth_n) \,\md\bth_n \; .
+Z_{ {\mbox m}\;n}({\cal D}) \equiv P({\cal D}\mid {\mbox m}_n) = \int L_n({\cal D}\mid \bth_n)\, \pi_n(\bth_n) \,\md\bth_n \; .
 \end{equation*}
 For several sections we refer to the marginalized likelihood without the context of different models, so we can drop the indexes for models. The marginalized likelihood is simply
 \begin{equation}
@@ -80,13 +104,16 @@ Z = \int\! L(\bth)\,\pi(\bth)\,\md\bth\; ,
 \end{equation}
 where $L(\bth)=L({\cal D}\mid \bth)$. 
 
-Marginalized likelihood is of central importance in bayesian statistical analysis. First of all, marginalized likelihood makes possible the bayesian decision theory given loss functions or utilities under various scenarios. In the context of exoplanet or substellar companion study using RV data, the probability of a multi-companion model or a mixture of multi-companion models is provided directly by marginalized likelihoods of all the models under consideration. Second, marginalized likelihood gives us a properly normalized posterior distribution, which is essential in population study under the framework of bayesian hierarchical modelling. And the results from population study will have a great impact on star and planet formation theories.
+The marginalized likelihood is of central importance in Bayesian statistical analysis. First of all, the marginalized likelihood makes possible Bayesian decision theory given loss functions or utilities under various scenarios. For example, if one's purpose is to minimize the possibility of making mistakes in his decision, the loss assigned to small marginalized likelihood should be large. In the context of exoplanet or sub-stellar companion study using RV data, the probability of a multi-companion model or a mixture of multi-companion models is provided directly by marginalized likelihoods of all the models under consideration. Second, the marginalized likelihood provides a properly normalized posterior distribution, which is essential in population studies in which there are mixture of models. For instance, suppose we have $K$ sets of data, and each data set is observed from a realization drawn from a population prior distribution depending on $\bal$, where $\bal$ is the hyper-parameter we are trying to infer. Assume for each data set, we have $N$ models to fit the data. The posterior distribution of $\bal$ will depend on the mixture of these $N$ models weighted by corresponding $Z$,
+\begin{equation}
+P(\bal | \{ {\cal D}^1,\, {\cal D}^2,\,\ldots,\, {\cal D}^K \}) \propto \int \prod_{k=1}^K\left[ \sum_{n=1}^{N} \frac{1}{Z_{ {\mbox m}\;n}^k}\,L_n({\cal D}^k| \bth_n,\, {\mbox m}_n )\,\pi_n(\bth_n | \bal, {\mbox m}_n) \right]\,\md\bth\, ,
+\label{eq:model-mixture}
+\end{equation}
+where the superscript $k$ labels the data, $Z_{ {\mbox m}\;n}^k$ is the marginalized likelihood of model $m_n$ given data ${\cal D}^k$, and $\md\bth$ varies according to which combination of models for different data sets is in the integrand.
 
-To either make maximum-likelihood parameter estimation or perform bayesian statistical analysis, Markov chain Monte Carlo (MCMC) are often employed. But simple MCMC is usually not enough to undertake the task of evaluating marginalized likelihood \citep{ford07a}. This is especially true in the case of multi-companion fit to the RV data. In such cases, the posterior distribution often exhibit multi-peak, `fat tail', or other unpredictable deviation from any gaussian approximation. 
+Various approaches have been developed to robustly evaluate the marginalized likelihood, including parallel tempering \citep{ford07a}, nested sampling \citep{skilling06a}, and diffusive nested sampling \citep{brewer11a}. We choose diffusive nested sampling to work with, because it can be viewed as a combination of both parallel tempering and nested sampling, and it is easier to incorporate diffusive nested sampling with the affine-invariant ensemble sampler we know and love \citep{goodman10a, hou12a, foreman-mackey13a}.
 
-Various approaches have been developed to robustly evaluate marginalized likelihood, including parallel tempering \citep{ford07a}, nested sampling \citep{skilling06a}, and diffusive nested sampling \citep{brewer11a}. We choose diffusive nested sampling to work with, because it can be viewed as a combination of both parallel tempering and nested sampling, and it is easier to incorporate diffusive nested sampling with the affine-invariant ensemble sampler \citep{goodman10a, hou12a, foreman-mackey13a}.
-
-We apply our algorithm to the radial velocity data of HIP 88048 ($\nu$ Oph) from the Lick K-Giant Search \citep{frink02a, mitchell03a, hekker06a, hekker08a, quirrenbach11a}. We choose HIP 88048 to study because it has two confirmed brown-dwarf companions of approximately 530-d period and 3210-d period \citep{quirrenbach11a}. Also the noise level of HIP 88048 is low, so over-fitting should be more obvious when excessive amount of companions are added to the model. We are mainly concerned with multi-companion models, so we include all possible sub-stellar companions in our priors, and do not confine ourselves to the planet regime. Let $k$ represent a model with $k$ companions, and there are 5 parameters per companion. Because our data are from a single observatory, meaning one jitter and one offset, the dimension of model $k$ is $2+5k$. We evaluate the marginalized likelihood of 1-, 2-, 3-, and 4-companion model based on the data. The result shows that 2-companion model has the largest marginalized likelihood among them, consistent with previous conjectures.
+We develop a new algorithm and applying it to radial velocity data from HIP 88048 ($\nu$ Oph) taken as part of the Lick K-Giant Search \citep{frink02a, mitchell03a, hekker06a, hekker08a, quirrenbach11a}. We choose HIP 88048 to study because it has two confirmed brown-dwarf companions of approximately 530-d period and 3210-d period \citep{quirrenbach11a}, but may hide also additional companions. Also the noise level of HIP 88048 is low, so over-fitting should be more obvious when excessive amount of companions are added to the model. We are building multi-companion models, including all possible sub-stellar companions in our priors; we do not confine ourselves to the planet regime. We evaluate the marginalized likelihood of 1-, 2-, 3-, and 4-companion model based on the data. The result shows that 2-companion model has the largest marginalized likelihood among them, consistent with previous conjectures.
 
 In Section~(\ref{sec:dns}), we discuss in detail the alogrithm of diffusive nested sampling and how we apply affine-invariance ensemble sampler to it. In Section~(\ref{sec:rosenbrock}), we present the results of the Rosenbrock trial problem. In Section~(\ref{sec:tszyj}), we present the marginalized likelihood of different models for HIP 88048. Finally, In Section~(\ref{sec:discussion}), we discuss our findings and future projects. 
 
@@ -341,7 +368,7 @@ where $\tau_j$ is the auto-correlation time for $L(\bth)$ chain that satisfies $
 
 \section{Trial Problem with Rosenbrock Function}
 \label{sec:rosenbrock}
-We apply our algorithm to an integral of Rosenbrock function, because the two variables of Rosenbrock functions are highly correlated and deviate from gaussian distribution greatly, which we hope will mimic some properties of the posterior of real problems. To be specific, we will try to evaluate the following integral
+We apply our algorithm to an integral of Rosenbrock function, because the two variables of Rosenbrock functions are highly correlated and deviate from Gaussian distribution greatly, which we hope will mimic some properties of the posterior of real problems. To be specific, we will try to evaluate the following integral
 \begin{equation*}
 Z=\int \pi_R(\bth)\,L_R(\bth)\,\md\bth\, ,
 \end{equation*}
@@ -467,13 +494,15 @@ Probability theory only provides us with the probabilities of different states o
 
 \section{Discussion}
 \label{sec:discussion}
-One of the biggest advantages of diffusive nested sampling is its ability to `jump' between peaks in the probability density one is studying. For example, the various peaks in the posterior probability densities shown in Fig.~(\ref{fig:282-3-hist}) and Fig.~(\ref{fig:282-4-hist}) pose no threat to diffusive nested sampling. The affine invariant ensemble sampler is very efficient in sampling multivariate probability distribution hat has highly correlated parameters, which is often the case in multi-companion model fitting for the RV data. The combination of these two, in principle, should be able to overcome any challenging problems. However, the algorithm is still subject to curse of dimension and hard likelihood functions. In such cases, one needs considerable amount of computing power to evaluate marginal likelihoods. In the case of 3- and 4-companion models, it takes the sampler much longer time to reach equilibrium and start to take samples.
+We successfully implement the algorithm. In rosenbrock trial problems, our estimates of the marginalized likelihood and its error bar match the results from repeated runs. We are able to obtain the marginalized likelihoods of multi-companion models for HIP 88048.
 
-Even though diffusive nested sampling deviates from traditional importance sampling, the estimator $\widehat{Z}$, defined in Eqn.~(\ref{eq:estimator-Z}), is an unbiased estimator of marginalized likelihood $Z$. However, it does present a challenge to put an error bar on $\widehat{Z}$. We have to make lots of assumptions to arrive at our estimation of $\var \widehat{Z}$, given in Eqn.~(\ref{eq:var-Z}), and we confirm the reliability of this estimation on trial problem discussed in Section (\ref{sec:rosenbrock}). Nonetheless, these assumptions may not be true in difficult problems, and we may underestimate the error bar in such problems.
+Diffusive nested sampling has the ability to `jump' between peaks in the probability density, because walkers routinely travel `down' the levels from one peak and 'up' again but in a different peak. So diffusive nested sampling is well suited for sampling the probability densities shown in Fig.~(\ref{fig:282-3-hist}) and Fig.~(\ref{fig:282-4-hist}). The affine invariant ensemble sampler can usually achieve low auto-correlation time, meaning fewer steps per independent sample, for all dimensions, when sampling multivariate probability distribution that has highly correlated parameters, which is often the case in multi-companion model fitting for RV data. The combination of these two algorithms, in principle, should be able to overcome any challenging problems. However, it is still subject to curse of dimension. The time to reach equilibrium and the FLOPS (floating-point operations per second) per likelihood call increase dramatically with the dimension of the problem. In such cases, one needs considerable amount of computing power to evaluate marginal likelihoods.
 
-For any bayesian approach, the statistical outcome will be affected more or less by the choice of prior distributions. But the sensitivity to the choice of priors is probably reflected no more in any other situations than in that of the marginalized likelihood. For example, if I double the boundary $K_b$ in Eqn.~(\ref{eq:prior-K}), I will actually double the volume but the new volume has almost zero likelihood in it. So the only thing that changes is the normalization in Eqn.~(\ref{eq:prior-K}). Consequently, the marginalized likelihood of $n$-companion model will then decease by a factor of $2^{-n}$, further discrediting large number of companions. But one should keep in mind that the choice of prior distributions should reflect any prior information. For instance, since we know majority of substellar companions have small eccentricity, it would be insane to have a prior that favors large eccentricity. Our choice of priors, though pedagogical, does reflect, to certain degree, the general distributions of substellar companions' physical parameters. In order to obtain a more appropriate prior distribution, one would hierarchically model the whole population to infer any hyper-parameters in the prior probability density function, which comes back to the importance of the capability of evaluating marginalized likelihood.
+Even though evaluating integrals using diffusive nested sampling is analogous to using importance sampling, the estimator of the integral is not the same, because in diffusive nested sampling, we are not only estimating the integral, but also the probability density itself. In spite of this, the estimator $\widehat{Z}$, defined in Eqn.~(\ref{eq:estimator-Z}), is an unbiased estimator of marginalized likelihood $Z$. However, it does present a challenge to put an error bar on $\widehat{Z}$. We have made this estimate but have to make lots of assumptions to arrive at our estimation of $\var \widehat{Z}$, given in Eqn.~(\ref{eq:var-Z}), and we confirm the reliability of this estimation on the trial problem discussed in Section (\ref{sec:rosenbrock}). Nonetheless, these assumptions may not be true in difficult problems, and we may underestimate the error bar in such problems.
 
-Because directly evaluating the marginalized likelihood was rarely done before, it is difficult to independently confirm our results using other numerical tools. We are developing an algorithm based on bayesian information criterion (BIC) to achieve this goal.
+For any Bayesian approach, the outcomes depend on the choice of prior distributions. This is also true in the case of the marginalized likelihood. For example, if I double $K_b$ in Eqn.~(\ref{eq:prior-K}), I will actually double the volume, but the new volume has almost zero likelihood in it. So the only thing that changes is the normalization in Eqn.~(\ref{eq:prior-K}). Consequently, the marginalized likelihood of $n$-companion model will then decease by a factor of $2^{-n}$, further discrediting large $n$. But one should keep in mind that the choice of prior distributions should reflect any available prior information. For instance, since we know the majority of sub-stellar companions have small eccentricities, it would be insane to have a prior that does not favor small eccentricity. Our choice of priors, though pedagogical, does reflect, to certain degree, the general distributions of sub-stellar companions' physical parameters. In order to obtain a more appropriate prior distribution, one would hierarchically model the whole population to infer any hyper-parameters in the prior probability density function, which comes back to the importance of the capability of evaluating marginalized likelihood, shown in Eqn.~(\ref{eq:model-mixture}).
+
+Because directly evaluating the marginalized likelihood in the field of exoplanet has not been routinely performed, \qer{(CITE?)} it is difficult to independently confirm our results using other numerical tools. We are developing an algorithm inspired by multi-canonical algorithm to achieve this goal.
 
 
 \begin{thebibliography}
@@ -529,22 +558,12 @@ Skilling,~J., 2006, Bayesian Analysis, 4, 833
 \end{thebibliography}
 
 \begin{figure}
-	\begin{subfigure}[b]{0.49\textwidth}
-		 \includegraphics[width=\textwidth]{fit_res_282_mod_1_20130930.png}
-		\caption{1-Companion Model}
-	\end{subfigure}
-	\begin{subfigure}[b]{0.49\textwidth}
-		 \includegraphics[width=\textwidth]{fit_res_282_mod_2_20130930.png}
-		\caption{2-Companion Model}
-	\end{subfigure}\\
-	\begin{subfigure}[b]{0.49\textwidth}
-		\includegraphics[width=\textwidth]{fit_res_282_mod_3_20130930.png}
-		\caption{3-Companion Model}
-	\end{subfigure}
-	\begin{subfigure}[b]{0.49\textwidth}
-		 \includegraphics[width=\textwidth]{fit_res_282_mod_4_20130930.png}
-		\caption{4-Companion Model}
-	\end{subfigure}
+ \begin{tabular}{cc}
+	\subfloat[1-Companion Model]{\includegraphics[width=0.49\linewidth]{fit_res_282_mod_1_20130930_.png}} &
+	\subfloat[2-Companion Model]{\includegraphics[width=0.49\linewidth]{fit_res_282_mod_2_20130930_.png}} \\
+	\subfloat[3-Companion Model]{\includegraphics[width=0.49\linewidth]{fit_res_282_mod_3_20130930_.png}} &
+	\subfloat[4-Companion Model]{\includegraphics[width=0.49\linewidth]{fit_res_282_mod_4_20130930_.png}}
+ \end{tabular}
  \caption{(a) In the upper panel, the blue lines show 100 sample fits from the posterior probability distribution of the 1-companion model, and the green dots show the data. In the bottom panel, the residual data for the best fit of the 1-companion model are shown. (b) In the upper panel, data and 100 sample fits from the posterior probability distribution of the 2-companion model are shown. In the bottom panel. The residual data are shown. (c) In the upper panel, data and 100 sample fits from the posterior probability distribution of the 3-companion model are shown. In the bottom panel. The residual data are shown. (d) In the upper panel, data and 100 sample fits from the posterior probability distribution of the 4-companion model are shown. In the bottom panel. The residual data are shown.}
  \label{fig:282-fits}
 \end{figure}
