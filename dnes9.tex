@@ -104,14 +104,14 @@ Z = \int\! L(\bth)\,\pi(\bth)\,\md\bth\; ,
 \end{equation}
 where $L(\bth)=L({\cal D}\mid \bth)$. 
 
-The marginalized likelihood is of central importance in Bayesian statistical analysis. First of all, the marginalized likelihood makes possible Bayesian decision theory given loss functions or utilities under various scenarios \citep{kass95a, jaynes03a}. For example, if one's purpose is to minimize the possibility of making mistakes in his decision, the loss assigned to small marginalized likelihood should be large. In the context of exoplanet or sub-stellar companion study using RV data, the probability of a multi-companion model or a mixture of multi-companion models is provided directly by marginalized likelihoods of all the models under consideration. Second, the marginalized likelihood provides a properly normalized posterior distribution, which is essential in population studies in which there are mixture of models \citep{gelman04a}. For instance, suppose we have $K$ sets of data, and each data set is observed from a realization drawn from a population prior distribution depending on $\bal$, where $\bal$ is the hyper-parameter we are trying to infer. Assume for each data set, we have $N$ models to fit the data. The posterior distribution of $\bal$ will depend on the mixture of these $N$ models weighted by corresponding $Z$ \citep{hogg10a},
+The marginalized likelihood is of central importance in Bayesian statistical analysis. First of all, the marginalized likelihood makes possible Bayesian decision theory given loss functions or utilities under various scenarios \citep{kass95a, jaynes03a}. For example, if one's purpose is to minimize the possibility of making mistakes in his decision, the loss assigned to small marginalized likelihood should be large. In the context of exoplanet or sub-stellar companion study using RV data, the probability of a multi-companion model or a mixture of multi-companion models is provided directly by marginalized likelihoods of all the models under consideration. Second, the marginalized likelihood provides a properly normalized posterior distribution, which is essential in population studies in which there are mixture of models \citep{richardson97a, gelman04a}. For instance, suppose we have $K$ sets of data, and each data set is observed from a realization drawn from a population prior distribution depending on $\bal$, where $\bal$ is the hyper-parameter we are trying to infer. Assume for each data set, we have $N$ models to fit the data. The posterior distribution of $\bal$ will depend on the mixture of these $N$ models weighted by corresponding $Z$ \citep{hogg10a},
 \begin{equation}
 P(\bal | \{ {\cal D}^1,\, {\cal D}^2,\,\ldots,\, {\cal D}^K \}) \propto \int \prod_{k=1}^K\left[ \sum_{n=1}^{N} \frac{1}{Z_{ {\mbox m}\;n}^k}\,L_n({\cal D}^k| \bth_n,\, {\mbox m}_n )\,\pi_n(\bth_n | \bal, {\mbox m}_n) \right]\,\md\bth\, ,
 \label{eq:model-mixture}
 \end{equation}
 where the superscript $k$ labels the data, $Z_{ {\mbox m}\;n}^k$ is the marginalized likelihood of model $m_n$ given data ${\cal D}^k$, and $\md\bth$ varies according to which combination of models for different data sets is in the integrand.
 
-Various approaches have been developed to robustly evaluate the marginalized likelihood \citep{cameron13a}, including parallel tempering \citep{ford07a}, nested sampling \citep{skilling06a, feroz08a}, and diffusive nested sampling \citep{brewer11a}. We choose diffusive nested sampling to work with, because it can be viewed as a combination of both parallel tempering and nested sampling, and it is easier to incorporate diffusive nested sampling with the affine-invariant ensemble sampler we know and love \citep{goodman10a, hou12a, foreman-mackey13a}.
+Various approaches have been developed to robustly evaluate the marginalized likelihood \citep{cameron13a}. These include the reversible jump MCMC \citep{richardson97a}, parallel tempering \citep{ford07a}, nested sampling \citep{skilling06a, feroz08a}, and diffusive nested sampling \citep{brewer11a}. We choose diffusive nested sampling to work with, because it can be viewed as a combination of both parallel tempering and nested sampling, and it is easier to incorporate diffusive nested sampling with the affine-invariant ensemble sampler we know and love \citep{goodman10a, hou12a, foreman-mackey13a}.
 
 We develop a new algorithm and applying it to radial velocity data from HIP 88048 ($\nu$ Oph) taken as part of the Lick K-Giant Search \citep{frink02a, mitchell03a, hekker06a, hekker08a, quirrenbach11a}. We choose HIP 88048 to study because it has two confirmed brown-dwarf companions of approximately 530-d period and 3210-d period \citep{quirrenbach11a}, but may hide also additional companions. Also the noise level of HIP 88048 is low, so over-fitting should be more obvious when excessive amount of companions are added to the model. We are building multi-companion models, including all possible sub-stellar companions in our priors; we do not confine ourselves to the planet regime. We evaluate the marginalized likelihood of 1-, 2-, 3-, and 4-companion model based on the data. The result shows that 2-companion model has the largest marginalized likelihood among them, consistent with previous conjectures.
 
@@ -522,7 +522,7 @@ Ford,~E.~B., Gregory,~P.~C., 2007, Statistical Challenges in Modern Astronomy IV
 \bibitem[Foreman-Mackey \etal(2013)]{foreman-mackey13a}
 Foreman-Mackey,~D., Hogg,~D.~W., Lang,~D., Goodman,~J., 2013, http://arxiv.org/abs/1202.3665
 
-\bibitem[Frink (2002)]{frink02a}
+\bibitem[Frink \etal(2002)]{frink02a}
 Frink,~S., \etal, 2002, \apj, 576, 478
 
 \bibitem[Gelman \etal(2004)]{gelman04a}
@@ -560,6 +560,9 @@ Ohta,~Y., Taruya,~A. \& Suto,~Y., 2005, \apj, 622, 1118
 
 \bibitem[Quirrenbach \etal(2011)]{quirrenbach11a}
 Quirrenbach,~A., Reffert,~S. \& Bergmann,~C., 2011, AIP Conference Proceedings, 1331, 102
+
+\bibitem[Richardson \& Green(1997)]{richardson97a}
+Richardson,~S., Green,~P.~J., 1997, \textit{Journal of the Royal Statistical Society}, 59, 731
 
 \bibitem[Sato \etal(2012)]{sato12a}
 Sato,~B., \etal, 2012, \pasj, 64(6), 135
