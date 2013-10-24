@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2013.6.8)  24 OCT 2013 12:18
+This is pdfTeX, Version 3.1415926-1.40.10 (TeX Live 2009/Debian) (format=pdflatex 2013.6.8)  24 OCT 2013 13:21
 entering extended mode
  %&-line parsing enabled.
 **dnes9.tex
@@ -501,19 +501,19 @@ fier (name{Hfootnote.2}) has been already used, duplicate ignored
                    \relax 
 l.573 \end{thebibliography}
                            
-<fit_res_282_mod_1_20130930_.png, id=367, 650.43pt x 650.43pt>
+<fit_res_282_mod_1_20130930_.png, id=368, 650.43pt x 650.43pt>
 File: fit_res_282_mod_1_20130930_.png Graphic file (type png)
 
 <use fit_res_282_mod_1_20130930_.png>
-<fit_res_282_mod_2_20130930_.png, id=369, 650.43pt x 650.43pt>
+<fit_res_282_mod_2_20130930_.png, id=370, 650.43pt x 650.43pt>
 File: fit_res_282_mod_2_20130930_.png Graphic file (type png)
 
 <use fit_res_282_mod_2_20130930_.png>
-<fit_res_282_mod_3_20130930_.png, id=370, 650.43pt x 650.43pt>
+<fit_res_282_mod_3_20130930_.png, id=371, 650.43pt x 650.43pt>
 File: fit_res_282_mod_3_20130930_.png Graphic file (type png)
 
 <use fit_res_282_mod_3_20130930_.png>
-<fit_res_282_mod_4_20130930_.png, id=371, 650.43pt x 650.43pt>
+<fit_res_282_mod_4_20130930_.png, id=372, 650.43pt x 650.43pt>
 File: fit_res_282_mod_4_20130930_.png Graphic file (type png)
 
 <use fit_res_282_mod_4_20130930_.png>
@@ -524,19 +524,19 @@ Overfull \hbox (14.61003pt too wide) in paragraph at lines 576--582
 
 LaTeX Warning: Float too large for page by 43.8243pt on input line 584.
 
-<282-1-hist.png, id=372, 903.375pt x 2601.72pt>
+<282-1-hist.png, id=373, 903.375pt x 2601.72pt>
 File: 282-1-hist.png Graphic file (type png)
  <use 282-1-hist.png>
 
 LaTeX Warning: Float too large for page by 43.19508pt on input line 619.
 
-<282-2-hist.png, id=373, 1734.48pt x 2601.72pt>
+<282-2-hist.png, id=374, 1734.48pt x 2601.72pt>
 File: 282-2-hist.png Graphic file (type png)
  <use 282-2-hist.png>
-<282-3-hist.png, id=374, 1734.48pt x 1734.48pt>
+<282-3-hist.png, id=375, 1734.48pt x 1734.48pt>
 File: 282-3-hist.png Graphic file (type png)
  <use 282-3-hist.png>
-<282-4-hist.png, id=377, 1734.48pt x 2601.72pt>
+<282-4-hist.png, id=378, 1734.48pt x 2601.72pt>
 File: 282-4-hist.png Graphic file (type png)
  <use 282-4-hist.png>
 
@@ -576,9 +576,9 @@ ublic/amsfonts/cm/cmsy9.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfon
 ts/cm/cmti10.pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmti8
 .pfb></usr/share/texmf-texlive/fonts/type1/public/amsfonts/cm/cmtt9.pfb></usr/s
 hare/texmf-texlive/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on dnes9.pdf (22 pages, 1352250 bytes).
+Output written on dnes9.pdf (22 pages, 1352511 bytes).
 PDF statistics:
- 515 PDF objects out of 1000 (max. 8388607)
+ 516 PDF objects out of 1000 (max. 8388607)
  130 named destinations out of 1000 (max. 500000)
  153 words of extra memory for PDF output out of 10000 (max. 10000000)
 
