@@ -1,14 +1,14 @@
-\BOOKMARK [1][-]{section.1}{Introduction}{}% 1
-\BOOKMARK [1][-]{section.2}{Diffusive Nested Sampling}{}% 2
-\BOOKMARK [2][-]{subsection.2.1}{Importance Sampling}{section.2}% 3
-\BOOKMARK [2][-]{subsection.2.2}{Prior Mass and Constrained Prior}{section.2}% 4
-\BOOKMARK [2][-]{subsection.2.3}{Setting Level Thresholds}{section.2}% 5
-\BOOKMARK [2][-]{subsection.2.4}{Nested Sampling by Stretch Move}{section.2}% 6
-\BOOKMARK [2][-]{subsection.2.5}{Refining Levels}{section.2}% 7
-\BOOKMARK [2][-]{subsection.2.6}{Marginalized Likelihood and Error Bar}{section.2}% 8
-\BOOKMARK [1][-]{section.3}{Trial Problem with Rosenbrock Function}{}% 9
-\BOOKMARK [1][-]{section.4}{Multi-Companion Model Fit for HIP 88048}{}% 10
-\BOOKMARK [2][-]{subsection.4.1}{Prior Distribution}{section.4}% 11
-\BOOKMARK [2][-]{subsection.4.2}{Likelihood}{section.4}% 12
-\BOOKMARK [2][-]{subsection.4.3}{Marginalized Likelihood}{section.4}% 13
-\BOOKMARK [1][-]{section.5}{Discussion}{}% 14
+\BOOKMARK [1][-]{section.1}{Introduction}{}
+\BOOKMARK [1][-]{section.2}{Diffusive Nested Sampling}{}
+\BOOKMARK [2][-]{subsection.2.1}{Importance Sampling}{section.2}
+\BOOKMARK [2][-]{subsection.2.2}{Prior Mass and Constrained Prior}{section.2}
+\BOOKMARK [2][-]{subsection.2.3}{Setting Level Thresholds}{section.2}
+\BOOKMARK [2][-]{subsection.2.4}{Nested Sampling by Stretch Move}{section.2}
+\BOOKMARK [2][-]{subsection.2.5}{Refining Levels}{section.2}
+\BOOKMARK [2][-]{subsection.2.6}{Marginalized Likelihood and Error Bar}{section.2}
+\BOOKMARK [1][-]{section.3}{Trial Problem with Rosenbrock Function}{}
+\BOOKMARK [1][-]{section.4}{Multi-Companion Model Fit for HIP 88048}{}
+\BOOKMARK [2][-]{subsection.4.1}{Prior Distribution}{section.4}
+\BOOKMARK [2][-]{subsection.4.2}{Likelihood}{section.4}
+\BOOKMARK [2][-]{subsection.4.3}{Marginalized Likelihood}{section.4}
+\BOOKMARK [1][-]{section.5}{Discussion}{}
